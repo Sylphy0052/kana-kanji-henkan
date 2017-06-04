@@ -1,7 +1,7 @@
 package analyzer;
 
 import analyzer.node.PartsOfSpeech;
-import analyzer.node.WordCost;
+import analyzer.node.ConnectionCost;
 import javafx.util.Pair;
 import org.supercsv.io.CsvListReader;
 import org.supercsv.io.ICsvListReader;
@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CorpusCostManager {
-    private ArrayList<WordCost> wordCosts = new ArrayList<>();
+    private ArrayList<ConnectionCost> connectionCosts = new ArrayList<>();
     private Map<String, Integer> indexes = new LinkedHashMap<>();
 
     public CorpusCostManager(String csvFile) throws IOException {
@@ -42,7 +42,7 @@ public class CorpusCostManager {
                 Double adjective = Double.parseDouble(values.get(13));
                 Double period = Double.parseDouble(values.get(14));
                 Double interjection = Double.parseDouble(values.get(15));
-                wordCosts.add(new WordCost(word, kana, partsOfSpeech, cost,
+                connectionCosts.add(new ConnectionCost(word, kana, partsOfSpeech, cost,
                         prenounAdjectival,
                         noun,
                         adverb,
@@ -61,10 +61,10 @@ public class CorpusCostManager {
         }
 
         //  indexing
-        wordCosts.sort((x1, x2) -> x1.getKana().compareTo(x2.getKana()));
-        for (int i = 0; i < wordCosts.size(); i++) {
-            WordCost wordCost = wordCosts.get(i);
-            String initial = wordCost.getKana();
+        connectionCosts.sort((x1, x2) -> x1.getKana().compareTo(x2.getKana()));
+        for (int i = 0; i < connectionCosts.size(); i++) {
+            ConnectionCost connectionCost = connectionCosts.get(i);
+            String initial = connectionCost.getKana();
             if (!initial.equals(before)) {
                 before = initial;
                 indexes.put(initial, i);
@@ -75,34 +75,34 @@ public class CorpusCostManager {
     private Pair<Integer, Integer> getIndexRange(String targetWord) {
         Integer index = indexes.get(getFirstCharacter(targetWord));
         Integer first = null;
-        for (Integer i = index; i < wordCosts.size(); i++) {
-            WordCost wordCost = wordCosts.get(i);
+        for (Integer i = index; i < connectionCosts.size(); i++) {
+            ConnectionCost connectionCost = connectionCosts.get(i);
             if (first == null) {
-                if (targetWord.equals(wordCost.getKana())) {
+                if (targetWord.equals(connectionCost.getKana())) {
                     first = i;
-                } else if (wordCost.getKana().startsWith(targetWord)) {
+                } else if (connectionCost.getKana().startsWith(targetWord)) {
                     return new Pair<>(i - 1, i - 1);
                 }
-            } else if (!targetWord.equals(wordCost.getKana())) {
+            } else if (!targetWord.equals(connectionCost.getKana())) {
                 return new Pair<>(first, i);
             }
         }
         return new Pair<>(-1, -1);
     }
 
-    public List<WordCost> findAllByKana(String word) {
+    public List<ConnectionCost> findAllByKana(String word) {
         Pair<Integer, Integer> interval = getIndexRange(word);
         if (interval.getKey() > 0) {
-            return wordCosts.subList(interval.getKey(), interval.getValue());
+            return connectionCosts.subList(interval.getKey(), interval.getValue());
         }
         return Collections.emptyList();
     }
 
     public Boolean isExistPartialMatchWord(String word) {
         Pair<Integer, Integer> interval = getIndexRange(word);
-        if (interval.getKey() > 0 && interval.getValue() + 1 < wordCosts.size()) {
-            WordCost wordCost = wordCosts.get(interval.getValue() + 1);
-            return wordCost.getKana().startsWith(word);
+        if (interval.getKey() > 0 && interval.getValue() + 1 < connectionCosts.size()) {
+            ConnectionCost connectionCost = connectionCosts.get(interval.getValue() + 1);
+            return connectionCost.getKana().startsWith(word);
         }
         return false;
     }

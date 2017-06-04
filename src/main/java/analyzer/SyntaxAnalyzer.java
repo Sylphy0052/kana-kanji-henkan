@@ -1,7 +1,7 @@
 package analyzer;
 
 import analyzer.node.PartsOfSpeech;
-import analyzer.node.WordCost;
+import analyzer.node.ConnectionCost;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 import lombok.RequiredArgsConstructor;
@@ -17,20 +17,20 @@ public class SyntaxAnalyzer {
 
     public SyntaxAnalysisResult convert(String text) {
 
-        ArrayList<WordCost> words = new ArrayList<>();
+        ArrayList<ConnectionCost> words = new ArrayList<>();
         Integer currentWordStringPoint = 0;
         List<String> strings = CorpusCostManager.sparateCharacters(text);
 
         while (currentWordStringPoint < strings.size()) {
             Integer currentStringPoint = 0;
             StringBuilder stringBuilder = new StringBuilder();
-            Multimap<Double, WordCost> costTreeMap = TreeMultimap.create(Double::compare, (x1, x2) -> x1.getKana().compareTo(x2.getKana()));
+            Multimap<Double, ConnectionCost> costTreeMap = TreeMultimap.create(Double::compare, (x1, x2) -> x1.getKana().compareTo(x2.getKana()));
 
             while (currentWordStringPoint + currentStringPoint < strings.size()) {
                 stringBuilder.append(strings.get(currentWordStringPoint + currentStringPoint));
                 String currentWord = stringBuilder.toString();
 
-                List<WordCost> list = corpusCostManager.findAllByKana(currentWord);
+                List<ConnectionCost> list = corpusCostManager.findAllByKana(currentWord);
                 list.forEach(x -> costTreeMap.put(calculateCost(words, x), x));
 
                 if (list.size() == 0 && !corpusCostManager.isExistPartialMatchWord(currentWord)) {
@@ -39,7 +39,7 @@ public class SyntaxAnalyzer {
                 currentStringPoint++;
             }
 
-            List<WordCost> list = costTreeMap.values().stream().collect(Collectors.toList());
+            List<ConnectionCost> list = costTreeMap.values().stream().collect(Collectors.toList());
             if (list.size() == 0) {
                 continue;
             }
@@ -52,55 +52,55 @@ public class SyntaxAnalyzer {
         return new SyntaxAnalysisResult(words);
     }
 
-    private Double calculateCost(final List<WordCost> wordHistories, WordCost wordCost) {
+    private Double calculateCost(final List<ConnectionCost> wordHistories, ConnectionCost connectionCost) {
         PartsOfSpeech partsOfSpeech;
         if (wordHistories.size() == 0) {
             partsOfSpeech = PartsOfSpeech.PERIOD;
         } else {
-            WordCost previous = wordHistories.get(wordHistories.size() - 1);
+            ConnectionCost previous = wordHistories.get(wordHistories.size() - 1);
             partsOfSpeech = previous.getPartsOfSpeech();
         }
 
-        Double addition = 1.0 - wordCost.getKana().length() * 0.1;
+        Double addition = 1.0 - connectionCost.getKana().length() * 0.1;
         Double hCost = 9.0;
 
         switch (partsOfSpeech) {
             case NOUN:
-                hCost = wordCost.getNoun();
+                hCost = connectionCost.getNoun();
                 break;
             case ADJECTIVE:
-                hCost = wordCost.getAdjective();
+                hCost = connectionCost.getAdjective();
                 break;
             case VERB:
-                hCost = wordCost.getVerb();
+                hCost = connectionCost.getVerb();
                 break;
             case ADVERB:
-                hCost =  wordCost.getAdverb();
+                hCost =  connectionCost.getAdverb();
                 break;
             case CONJUCTION:
-                hCost = wordCost.getConjuction();
+                hCost = connectionCost.getConjuction();
                 break;
             case INTERJECTION:
-                hCost = wordCost.getInterjection();
+                hCost = connectionCost.getInterjection();
                 break;
             case PARTICLE:
-                hCost = wordCost.getParticle();
+                hCost = connectionCost.getParticle();
                 break;
             case PRENOUN_ADJECTIVAL:
-                hCost = wordCost.getAdjective();
+                hCost = connectionCost.getAdjective();
                 break;
             case AUXILIARY_VERB:
-                hCost = wordCost.getAuxiliaryVerb();
+                hCost = connectionCost.getAuxiliaryVerb();
                 break;
             case PREFIX:
-                hCost = wordCost.getPrefix();
+                hCost = connectionCost.getPrefix();
                 break;
             case PERIOD:
-                hCost = wordCost.getPeriod();
+                hCost = connectionCost.getPeriod();
                 break;
             default:
                 break;
         }
-        return addition * hCost + wordCost.getCost();
+        return addition * hCost + connectionCost.getCost();
     }
 }

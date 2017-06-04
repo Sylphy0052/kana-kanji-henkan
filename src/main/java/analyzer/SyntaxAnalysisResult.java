@@ -1,6 +1,6 @@
 package analyzer;
 
-import analyzer.node.WordCost;
+import analyzer.node.ConnectionCost;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -13,7 +13,7 @@ import java.util.List;
 public class SyntaxAnalysisResult {
 
     @NonNull
-    private final List<WordCost> words;
+    private final List<ConnectionCost> words;
 
     public String toString() {
         if (words.size() <= 0) {

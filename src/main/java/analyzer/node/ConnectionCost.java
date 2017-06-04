@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class WordCost {
+public class ConnectionCost {
     @NonNull
     private final String word;
 
